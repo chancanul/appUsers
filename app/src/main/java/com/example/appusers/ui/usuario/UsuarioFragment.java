@@ -1,5 +1,6 @@
 package com.example.appusers.ui.usuario;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -109,6 +111,33 @@ public class UsuarioFragment extends Fragment {
         myRecycler.setLayoutManager(new LinearLayoutManager(getContext())); //Agregando un contraintLayout al recicler
         myRecycler.setAdapter(myAdapter);//Volcar los datos al recycler
         //Generar la función clic del adaptador, implementado en el adaptador
+        myAdapter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle datosUsuario = new Bundle();
+                String id_usuario = listado.get(myRecycler.getChildLayoutPosition(v)).getId_usuario();
+                String id_rol = listado.get(myRecycler.getChildLayoutPosition(v)).getId_rol();
+                String nombre = listado.get(myRecycler.getChildLayoutPosition(v)).getNombre();
+                String apellido_p = listado.get(myRecycler.getChildLayoutPosition(v)).getApellido_p();
+                String apellido_m = listado.get(myRecycler.getChildLayoutPosition(v)).getApellido_m();
+                String usuario = listado.get(myRecycler.getChildLayoutPosition(v)).getUsuario();
+                String password = listado.get(myRecycler.getChildLayoutPosition(v)).getPassword();
+                String imagen = listado.get(myRecycler.getChildLayoutPosition(v)).getImagen();
+                String  rol = listado.get(myRecycler.getChildLayoutPosition(v)).getRoles().getNombre();
+                datosUsuario.putString("id_usuario", id_usuario);
+                datosUsuario.putString("id_rol", id_rol);
+                datosUsuario.putString("nombre", nombre);
+                datosUsuario.putString("apellido_p", apellido_p);
+                datosUsuario.putString("apellido_m", apellido_m);
+                datosUsuario.putString("usuario", usuario);
+                datosUsuario.putString("password", password);
+                datosUsuario.putString("imagen", imagen);
+                datosUsuario.putString("rol", rol);
+                datosUsuario.putString("accion", "M");
+                NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, datosUsuario);
+            }
+        });
+
 
     }
 

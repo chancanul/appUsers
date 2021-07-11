@@ -22,4 +22,9 @@
         android:name="com.example.appusers.ui.slideshow.SlideshowFragment"
         android:label="@string/menu_slideshow"
         tools:layout="@layout/fragment_slideshow" />
+    <fragment
+        android:id="@+id/detalleUsuarioFragment"
+        android:name="com.example.appusers.ui.usuario.DetalleUsuarioFragment"
+        android:label="detalle_usuario_fragment"
+        tools:layout="@layout/detalle_usuario_fragment" />
 </navigation>

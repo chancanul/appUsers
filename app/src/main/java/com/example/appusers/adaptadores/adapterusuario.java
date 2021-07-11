@@ -23,6 +23,7 @@ public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customVi
     Context contexto;
     List<usuarios> listado;
     private View myView;
+    private View.OnClickListener listener;
 
     public adapterusuario(Context contexto, List listado) {
         this.contexto = contexto;
@@ -52,11 +53,19 @@ public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customVi
     public int getItemCount() {
         return listado.size();
     }
-
+     //Este es el evento onclick del implement View.OnClickListener de la clase.
+    //La variable listener es definida a nivel de la clase
     @Override
     public void onClick(View v) {
-
+      if(listener != null) {
+          listener.onClick(v);
+      }
     }
+    public void setOnClickListener (View.OnClickListener listener) {
+        this.listener = listener;
+    }
+    //Esta clase es la primera en definirse, su objetivo es vincular la vista view_users con la
+    //clase adapter es decir esta clase
     public class customViewHolder extends RecyclerView.ViewHolder {
         //Declarar los controles a utilizar
         TextView rcvId, rcvNombre, rcvApellido, rcvRol;
