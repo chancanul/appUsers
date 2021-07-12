@@ -80,14 +80,14 @@
                     android:orientation="horizontal">
 
                     <ImageButton
-                        android:id="@+id/duCBtnCamara"
+                        android:id="@+id/duCImgBtnCamara"
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:scaleType="fitXY"
                         android:src="@drawable/camera" />
 
                     <ImageButton
-                        android:id="@+id/duCBtnGaleria"
+                        android:id="@+id/duCImgBtnGaleria"
                         android:layout_width="75dp"
                         android:layout_height="75dp"
                         android:scaleType="fitXY"

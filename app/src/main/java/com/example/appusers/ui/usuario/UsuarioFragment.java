@@ -20,7 +20,7 @@ import com.example.appusers.MainActivity;
 import com.example.appusers.R;
 import com.example.appusers.adaptadores.adapterusuario;
 import com.example.appusers.configuracion.config;
-import com.example.appusers.databinding.FragmentHomeBinding;
+import com.example.appusers.databinding.FragmentUsuarioBinding;
 import com.example.appusers.modelos.usuarios;
 import com.example.appusers.retrofit.interfaceRetrofit;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -37,7 +37,7 @@ import retrofit2.Response;
 public class UsuarioFragment extends Fragment {
 
     private UsuarioViewModel usuarioViewModel;
-    private FragmentHomeBinding binding;
+    private FragmentUsuarioBinding binding;
 
     private RecyclerView myRecycler;
     private View myView;
@@ -48,7 +48,7 @@ public class UsuarioFragment extends Fragment {
         usuarioViewModel =
                 new ViewModelProvider(this).get(UsuarioViewModel.class);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        binding = FragmentUsuarioBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         final TextView textView = binding.textHome;
@@ -71,7 +71,16 @@ public class UsuarioFragment extends Fragment {
         if (navigation != null) {
             FloatingActionButton fabactionUser = navigation.findViewById(R.id.fab);
             fabactionUser.setImageResource(R.drawable.guardar_usuario);
+            fabactionUser.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle accion =  new Bundle();
+                    accion.putString("accion", "N");
+                    NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, accion);
+                }
+            });
         }
+
         getUsuarios();
     }
 

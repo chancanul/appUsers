@@ -1,5 +1,6 @@
 package com.example.appusers.retrofit;
 
+import com.example.appusers.modelos.roles;
 import com.example.appusers.modelos.usuarios;
 
 import java.util.List;
@@ -30,4 +31,6 @@ public interface interfaceRetrofit {
                                  @Field("password") String password);
     @GET
     Call <List<usuarios>> getusuarios (@Url String url);
+    @GET
+    Call <List<roles>> getRoles (@Url String url);
 }
