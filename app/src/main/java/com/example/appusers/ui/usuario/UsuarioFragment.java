@@ -22,7 +22,9 @@ import com.example.appusers.adaptadores.adapterusuario;
 import com.example.appusers.configuracion.config;
 import com.example.appusers.databinding.FragmentUsuarioBinding;
 import com.example.appusers.modelos.usuarios;
+import com.example.appusers.retrofit.httpCall;
 import com.example.appusers.retrofit.interfaceRetrofit;
+import com.example.appusers.retrofit.onResponseUsuarios;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -81,7 +83,7 @@ public class UsuarioFragment extends Fragment {
             });
         }
 
-        getUsuarios();
+        mostrarRecycler();
     }
 
     @Override
@@ -90,63 +92,66 @@ public class UsuarioFragment extends Fragment {
         binding = null;
     }
 
-    private void getUsuarios() {
+    //private void getUsuarios() {
         //Variable para iniciar la petición Retrofit
-        interfaceRetrofit peticion = config.getRetrofit().create(interfaceRetrofit.class);
+      //  interfaceRetrofit peticion = config.getRetrofit().create(interfaceRetrofit.class);
         //Preparar la petición call (llamar)
-        Call<List<usuarios>> call = peticion.getusuarios("actUser");
+      //  Call<List<usuarios>> call = peticion.getusuarios("actUser");
         //Iniciar la petición con enqueue. el método incluye dos apartados para saber si la petición se llevó con éxito o fracaso
         //onResponse-onFailure
-        call.enqueue(new Callback<List<usuarios>>() {
-            @Override
-            public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
+        //call.enqueue(new Callback<List<usuarios>>() {
+          //  @Override
+         //   public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
                 //En caso de éxito
                 //la variable response es la encargada de almacenar la respuesta del servidor.
-                mostrarRecycler(response.body());
-            }
-            @Override
-            public void onFailure(Call<List<usuarios>> call, Throwable t) {
+              //  mostrarRecycler(response.body());
+           // }
+           // @Override
+           // public void onFailure(Call<List<usuarios>> call, Throwable t) {
                 //en caso de fracaso
 
-                Snackbar msjPersonalizado = Snackbar.make(myView, "Servidor inaccesible", Snackbar.LENGTH_SHORT);
-                msjPersonalizado.show();
-            }
-        });
-    }  //fin get usuarios
+             //   Snackbar msjPersonalizado = Snackbar.make(myView, "Servidor inaccesible", Snackbar.LENGTH_SHORT);
+              //  msjPersonalizado.show();
+           // }
+       // });
+   // }  //fin get usuarios
 
-    public void mostrarRecycler(List<usuarios> listado) {
+    public void mostrarRecycler() {
+
         myRecycler = (RecyclerView) myView.findViewById(R.id.recvCUsuarios); //Definiendo el recycler
-        myAdapter = new adapterusuario(getContext(), listado); //Construyendo el adaptador
-        myRecycler.setLayoutManager(new LinearLayoutManager(getContext())); //Agregando un contraintLayout al recicler
-        myRecycler.setAdapter(myAdapter);//Volcar los datos al recycler
-        //Generar la función clic del adaptador, implementado en el adaptador
-        myAdapter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bundle datosUsuario = new Bundle();
-                String id_usuario = listado.get(myRecycler.getChildLayoutPosition(v)).getId_usuario();
-                String id_rol = listado.get(myRecycler.getChildLayoutPosition(v)).getId_rol();
-                String nombre = listado.get(myRecycler.getChildLayoutPosition(v)).getNombre();
-                String apellido_p = listado.get(myRecycler.getChildLayoutPosition(v)).getApellido_p();
-                String apellido_m = listado.get(myRecycler.getChildLayoutPosition(v)).getApellido_m();
-                String usuario = listado.get(myRecycler.getChildLayoutPosition(v)).getUsuario();
-                String password = listado.get(myRecycler.getChildLayoutPosition(v)).getPassword();
-                String imagen = listado.get(myRecycler.getChildLayoutPosition(v)).getImagen();
-                String  rol = listado.get(myRecycler.getChildLayoutPosition(v)).getRoles().getNombre();
-                datosUsuario.putString("id_usuario", id_usuario);
-                datosUsuario.putString("id_rol", id_rol);
-                datosUsuario.putString("nombre", nombre);
-                datosUsuario.putString("apellido_p", apellido_p);
-                datosUsuario.putString("apellido_m", apellido_m);
-                datosUsuario.putString("usuario", usuario);
-                datosUsuario.putString("password", password);
-                datosUsuario.putString("imagen", imagen);
-                datosUsuario.putString("rol", rol);
-                datosUsuario.putString("accion", "M");
-                NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, datosUsuario);
-            }
-        });
+        httpCall.getUsuarios(list -> {
+            myAdapter = new adapterusuario(getContext(), list); //Construyendo el adaptador
+            myRecycler.setLayoutManager(new LinearLayoutManager(getContext())); //Agregando un contraintLayout al recicler
+            myRecycler.setAdapter(myAdapter);//Volcar los datos al recycler
+            //Generar la función clic del adaptador, implementado en el adaptador
+            myAdapter.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle datosUsuario = new Bundle();
+                    String id_usuario = list.get(myRecycler.getChildLayoutPosition(v)).getId_usuario();
+                    String id_rol = list.get(myRecycler.getChildLayoutPosition(v)).getId_rol();
+                    String nombre = list.get(myRecycler.getChildLayoutPosition(v)).getNombre();
+                    String apellido_p = list.get(myRecycler.getChildLayoutPosition(v)).getApellido_p();
+                    String apellido_m = list.get(myRecycler.getChildLayoutPosition(v)).getApellido_m();
+                    String usuario = list.get(myRecycler.getChildLayoutPosition(v)).getUsuario();
+                    String password = list.get(myRecycler.getChildLayoutPosition(v)).getPassword();
+                    String imagen = list.get(myRecycler.getChildLayoutPosition(v)).getImagen();
+                    String  rol = list.get(myRecycler.getChildLayoutPosition(v)).getRoles().getNombre();
+                    datosUsuario.putString("id_usuario", id_usuario);
+                    datosUsuario.putString("id_rol", id_rol);
+                    datosUsuario.putString("nombre", nombre);
+                    datosUsuario.putString("apellido_p", apellido_p);
+                    datosUsuario.putString("apellido_m", apellido_m);
+                    datosUsuario.putString("usuario", usuario);
+                    datosUsuario.putString("password", password);
+                    datosUsuario.putString("imagen", imagen);
+                    datosUsuario.putString("rol", rol);
+                    datosUsuario.putString("accion", "M");
+                    NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, datosUsuario);
+                } //fin de onclick()
+            }); //fin de onclick listener
 
+        }, myView); //fin de onResponseUsuarios
 
     }
 

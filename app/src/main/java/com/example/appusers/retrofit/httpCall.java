@@ -1,7 +1,12 @@
 package com.example.appusers.retrofit;
 
+import android.content.Context;
+import android.view.View;
+
 import com.example.appusers.configuracion.config;
 import com.example.appusers.modelos.roles;
+import com.example.appusers.modelos.usuarios;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
@@ -21,6 +26,38 @@ public class httpCall {
             @Override
             public void onFailure(Call<List<roles>> call, Throwable t) {
 
+            }
+        });
+  }
+
+  static public void getUsuarios(onResponseUsuarios callBack, View v) {
+        interfaceRetrofit retrofit = config.getRetrofit().create(interfaceRetrofit.class);
+        Call <List<usuarios>> call = retrofit.getusuarios("actUser");
+        call.enqueue(new Callback<List<usuarios>>() {
+            @Override
+            public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
+                callBack.usuarios(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<usuarios>> call, Throwable t) {
+                Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
+            }
+        });
+  }
+
+  static public void getValidar(onResponseValidar callBack,View v, String user, String password) {
+        interfaceRetrofit retrofit = config.getRetrofit().create(interfaceRetrofit.class);
+        Call <List<usuarios>> call = retrofit.validar(user, password);
+        call.enqueue(new Callback<List<usuarios>>() {
+            @Override
+            public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
+                callBack.usuarios(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<usuarios>> call, Throwable t) {
+                Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
             }
         });
   }
