@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.ContentValues;
@@ -16,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,8 +42,12 @@ import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -64,7 +70,9 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private adapterSpiner fill;
     private Uri imageUri;
     private static final int _IMAGE_CAPTURE = 100;
-    ActivityResultLauncher<Intent> activityResultLauncher;
+    private static final int _PICK_GALLERY = 100;
+    ActivityResultLauncher<Intent> activityResultLauncherCamera;
+
 
     private String accion = "";
     public static DetalleUsuarioFragment newInstance() {
@@ -97,8 +105,9 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             fabSave = detalleFragment.findViewById(R.id.fab);
             fabSave.setImageResource(R.drawable.save);
             fabSave.setOnClickListener(this);
-            imgBtnGallery.setOnClickListener(this);
-            imgBtnGallery.setOnClickListener(this);
+            imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
+            imgBtnCamera.setOnClickListener(this);
+
 
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
@@ -140,17 +149,26 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                 } //fin get arguments
             }); //Fin OnResponse
 
-            activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            activityResultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            Bundle bundle = result.getData().getExtras();
-                            Bitmap bitmap = (Bitmap) bundle.get("data");
-                            imgUser.setImageBitmap(bitmap);
+                        if (result.getResultCode() == RESULT_OK) {
+                           imgUser.setImageURI(imageUri);
                         }
                     });
         } //fin detalle fragment
     } //fin onViewCreated
 
+    ActivityResultLauncher<String> getImageGallery = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            new ActivityResultCallback<Uri>() {
+                @Override
+                public void onActivityResult(Uri result) {
+                    if (result != null) {
+                        imgUser.setImageURI(result);
+                    }
+                }
+            }
+    );
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -179,31 +197,37 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
          **/
         int identifier = v.getId();
         if (R.id.fab == identifier) {
-
             }  else if (R.id.duCImgBtnCamara == identifier) {
+            //String timeStamp = new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date());
+            //String imageFilename = "JPEG_" + timeStamp + "_";
+            //File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            //try {
+              // File image = File.createTempFile(
+                    //    imageFilename,
+                    //   ".jpg",
+                    //    storageDir
+               // );
+               // String currentPhotoPath = image.getAbsolutePath();
+               // Intent takepictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+              // Uri photoUri = FileProvider.getUriForFile(getContext(), "com.example.appusers", image);
+              //  takepictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+               // activityResultLauncherCamera.launch(takepictureIntent);
+           // } catch (IOException e) {
+            //    e.printStackTrace();
+            //}
+
             ContentValues descriptions = new ContentValues();
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             descriptions.put(MediaStore.Images.Media.TITLE, "My imagen");
             descriptions.put(MediaStore.Images.Media.DESCRIPTION, "Photo Taken On" + System.currentTimeMillis());
             imageUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions);
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                activityResultLauncher.launch(intent);
-            }
-            //startActivityForResult(intent, _IMAGE_CAPTURE);
+            activityResultLauncherCamera.launch(intent);
             }  else if (R.id.duCImgBtnGaleria == identifier) {
-             Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
-             if (galeria.resolveActivity(getActivity().getPackageManager()) != null) {
-                 activityResultLauncher.launch(galeria);
-             }
+            // Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
+               //  activityResultLauncherCamera.launch(galeria);
             }
     } // fin del evento onclick
 
-    public void openCameraAcivityForResult() {
 
-    }
-
-    public void openCamera() {
-
-    }
 }
