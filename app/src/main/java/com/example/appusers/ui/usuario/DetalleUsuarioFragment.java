@@ -1,13 +1,22 @@
 package com.example.appusers.ui.usuario;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,12 +40,15 @@ import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static android.app.Activity.RESULT_OK;
 
 public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener{
 
@@ -50,6 +62,9 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private ImageView imgUser;
     private ImageButton imgBtnCamera, imgBtnGallery;
     private adapterSpiner fill;
+    private Uri imageUri;
+    private static final int _IMAGE_CAPTURE = 100;
+    ActivityResultLauncher<Intent> activityResultLauncher;
 
     private String accion = "";
     public static DetalleUsuarioFragment newInstance() {
@@ -81,12 +96,9 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
 
             fabSave = detalleFragment.findViewById(R.id.fab);
             fabSave.setImageResource(R.drawable.save);
-            fabSave.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
+            fabSave.setOnClickListener(this);
+            imgBtnGallery.setOnClickListener(this);
+            imgBtnGallery.setOnClickListener(this);
 
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
@@ -127,6 +139,15 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                     } //fin de switch
                 } //fin get arguments
             }); //Fin OnResponse
+
+            activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            Bundle bundle = result.getData().getExtras();
+                            Bitmap bitmap = (Bitmap) bundle.get("data");
+                            imgUser.setImageBitmap(bitmap);
+                        }
+                    });
         } //fin detalle fragment
     } //fin onViewCreated
 
@@ -137,8 +158,52 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         // TODO: Use the ViewModel
     }
 
+
+
     @Override
     public void onClick(View v) {
-        
+        //La sentencia switch en este caso a partir de la versión 7 ya no son definitivos por lo tanto para
+        //tener un mejor rendimiento se utiliza if/else. Esto según la documentación oficial se puede utilizar
+        //la sentencia Switch pero debemos tener en cuenta que pierde eficiencia como en bucles o renderizados
+        /**
+        switch (v.getId()) {
+            case R.id.fab:
+                break;
+            case R.id.duCImgBtnCamara:
+
+                break;
+            case R.id.duCImgBtnGaleria:
+
+                break;
+        }
+         **/
+        int identifier = v.getId();
+        if (R.id.fab == identifier) {
+
+            }  else if (R.id.duCImgBtnCamara == identifier) {
+            ContentValues descriptions = new ContentValues();
+            descriptions.put(MediaStore.Images.Media.TITLE, "My imagen");
+            descriptions.put(MediaStore.Images.Media.DESCRIPTION, "Photo Taken On" + System.currentTimeMillis());
+            imageUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                activityResultLauncher.launch(intent);
+            }
+            //startActivityForResult(intent, _IMAGE_CAPTURE);
+            }  else if (R.id.duCImgBtnGaleria == identifier) {
+             Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
+             if (galeria.resolveActivity(getActivity().getPackageManager()) != null) {
+                 activityResultLauncher.launch(galeria);
+             }
+            }
+    } // fin del evento onclick
+
+    public void openCameraAcivityForResult() {
+
+    }
+
+    public void openCamera() {
+
     }
 }

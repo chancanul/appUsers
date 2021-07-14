@@ -8,6 +8,8 @@ import com.example.appusers.modelos.roles;
 import com.example.appusers.modelos.usuarios;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 import retrofit2.Call;
@@ -51,12 +53,12 @@ public class httpCall {
         Call <List<usuarios>> call = retrofit.validar(user, password);
         call.enqueue(new Callback<List<usuarios>>() {
             @Override
-            public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
+            public void onResponse(@NotNull Call<List<usuarios>> call, @NotNull Response<List<usuarios>> response) {
                 callBack.usuarios(response.body());
             }
 
             @Override
-            public void onFailure(Call<List<usuarios>> call, Throwable t) {
+            public void onFailure(@NotNull Call<List<usuarios>> call, @NotNull Throwable t) {
                 Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
             }
         });
