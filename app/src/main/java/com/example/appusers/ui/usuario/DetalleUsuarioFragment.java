@@ -9,7 +9,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -19,6 +22,7 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +31,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.appusers.MainActivity;
@@ -43,6 +48,7 @@ import com.squareup.picasso.Picasso;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -72,6 +78,8 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private static final int _IMAGE_CAPTURE = 100;
     private static final int _PICK_GALLERY = 100;
     ActivityResultLauncher<Intent> activityResultLauncherCamera;
+    private String mCurrentPhotoPhat;
+    private Bitmap thumbnail;//Variable para almacenar el mapa de bits.
 
 
     private String accion = "";
@@ -107,7 +115,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             fabSave.setOnClickListener(this);
             imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
             imgBtnCamera.setOnClickListener(this);
-
 
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
@@ -152,7 +159,28 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             activityResultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == RESULT_OK) {
-                           imgUser.setImageURI(imageUri);
+                            int rotate = 0;
+                            try {
+                                ExifInterface exif = new ExifInterface(getPath(imageUri));
+                                int orientation  = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                                switch (orientation) {
+                                    case ExifInterface.ORIENTATION_ROTATE_270:
+                                        rotate = 270;
+                                        break;
+                                    case ExifInterface.ORIENTATION_ROTATE_180:
+                                        rotate = 180;
+                                        break;
+                                    case ExifInterface.ORIENTATION_ROTATE_90:
+                                        rotate = 90;
+                                        break;
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            thumbnail = getGuardarImagen(imageUri, rotate);
+                            //Asignar la imagen al ImageView del layout.
+                            imgUser.setImageBitmap(thumbnail);
+                            //imgUser.setImageURI(imageUri);
                         }
                     });
         } //fin detalle fragment
@@ -198,36 +226,80 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         int identifier = v.getId();
         if (R.id.fab == identifier) {
             }  else if (R.id.duCImgBtnCamara == identifier) {
-            //String timeStamp = new SimpleDateFormat("yyyyMMdd.HHmmss").format(new Date());
-            //String imageFilename = "JPEG_" + timeStamp + "_";
-            //File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-            //try {
-              // File image = File.createTempFile(
-                    //    imageFilename,
-                    //   ".jpg",
-                    //    storageDir
-               // );
-               // String currentPhotoPath = image.getAbsolutePath();
-               // Intent takepictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-              // Uri photoUri = FileProvider.getUriForFile(getContext(), "com.example.appusers", image);
-              //  takepictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-               // activityResultLauncherCamera.launch(takepictureIntent);
-           // } catch (IOException e) {
-            //    e.printStackTrace();
-            //}
 
-            ContentValues descriptions = new ContentValues();
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            descriptions.put(MediaStore.Images.Media.TITLE, "My imagen");
-            descriptions.put(MediaStore.Images.Media.DESCRIPTION, "Photo Taken On" + System.currentTimeMillis());
-            imageUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-            activityResultLauncherCamera.launch(intent);
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                ContentValues descriptions = new ContentValues();
+                descriptions.put(MediaStore.Images.Media.TITLE, "My imagen");
+                descriptions.put(MediaStore.Images.Media.DESCRIPTION, "Photo Taken On" + System.currentTimeMillis());
+                imageUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+
+                activityResultLauncherCamera.launch(intent);
             }  else if (R.id.duCImgBtnGaleria == identifier) {
-            // Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
-               //  activityResultLauncherCamera.launch(galeria);
+                Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
+                activityResultLauncherCamera.launch(galeria);
             }
     } // fin del evento onclick
+
+    /**
+     * Función para traer la ruta (path) del recurso (Uri)
+     * @param uri recurso path del archivo
+     * @return ruta del archivo.
+     */
+    private String getPath(Uri uri) {
+        //Arreglo para procesar la ruta por medio de un cursor.
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, null);
+        if (cursor == null) return null;
+        int colum_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String s = cursor.getString(colum_index);
+        cursor.close();
+        return s; // Devuelve la ruta.
+    } //Fin de getPath()
+
+
+    /**
+     * Funcióm getGuardarImagen, desompone una imagen en una matriz para luego procesarla en un mapa de bits
+     * Devuelve un bitMap con la imagen comprimida.
+     * @param recurso
+     * @param giro
+     * @return
+     */
+    private Bitmap getGuardarImagen(Uri recurso, int giro) {
+        String path = "";
+        Bitmap picture = null;
+        File imagen;
+        try {
+            path = getPath(recurso); //Traer la ruta del recurso Uri.
+            picture = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), recurso); //Alamacenar en la variable la imagen nueva guardada.
+            imagen = new File(path); //Crear
+            try {
+                FileOutputStream salida = new FileOutputStream(imagen); //Convetir en bytes.
+                picture.compress(Bitmap.CompressFormat.JPEG, 50, salida); //Comprimir.
+                salida.flush();//Limpiar los recursos de memoria
+                salida.close(); //Cerrar el archivo.
+                Matrix matrix = new Matrix(); //Nueva imagen de bits.
+                matrix.postRotate(giro);//Aplicar la rotación de la imagen ya comprimida.
+                //Armar nuevamente la imaen en Bitmap.
+                picture = Bitmap.createBitmap(picture,
+                        0,
+                        0 , picture.getWidth(),
+                        picture.getHeight(),
+                        matrix,
+                        true);
+            } catch (Exception e) {
+
+                Log.e("Fallo al intento de gaurdar", e.getMessage());
+            } //fin de try
+
+        } catch (Exception e) {
+
+        } //fin de try
+        //Retornar la imagen en mapa de Bits.
+        return picture;
+    } //Fin de getGuardar()
+
 
 
 }
