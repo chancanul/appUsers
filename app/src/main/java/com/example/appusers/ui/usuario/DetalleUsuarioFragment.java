@@ -1,74 +1,65 @@
 package com.example.appusers.ui.usuario;
 
-import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.content.FileProvider;
 import androidx.lifecycle.ViewModelProvider;
-
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
+
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
-
 import com.example.appusers.MainActivity;
 import com.example.appusers.R;
 import com.example.appusers.adaptadores.adapterSpiner;
 import com.example.appusers.configuracion.config;
 import com.example.appusers.modelos.roles;
+import com.example.appusers.modelos.usuarios;
 import com.example.appusers.retrofit.httpCall;
-import com.example.appusers.retrofit.interfaceRetrofit;
-import com.example.appusers.retrofit.onResponseRoles;
+import com.example.appusers.retrofit.onResponseUsuarios;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
-
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.text.Format;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.Objects;
+//Notas: el requiereContext() es la nueva manera de llamar a getContext()
 
 import static android.app.Activity.RESULT_OK;
 
-public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener{
+public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener{
 
     private DetalleUsuarioViewModel mViewModel;
 
     private View myView;
     private FloatingActionButton fabSave;
-    private EditText nombre, apellido_p, apellido_m, usuario, password;
+    private EditText eTxtNombre, eTxtApellido_p, eTxtApellido_m, eTxtUsuario, eTxtPassword;
     private TextView id_usuario;
     private Spinner spinRol;
     private ImageView imgUser;
@@ -80,6 +71,10 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     ActivityResultLauncher<Intent> activityResultLauncherCamera;
     private String mCurrentPhotoPhat;
     private Bitmap thumbnail;//Variable para almacenar el mapa de bits.
+    private List<usuarios> listUsuarios;
+    private List<roles> listRoles;
+    private String id_rol="";
+
 
 
     private String accion = "";
@@ -100,11 +95,11 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         MainActivity detalleFragment = (MainActivity) getActivity();
         if (detalleFragment != null) {
             id_usuario = myView.findViewById(R.id.duCEtxtid);
-            nombre = myView.findViewById(R.id.duCEtxtNombre);
-            apellido_p = myView.findViewById(R.id.duCEtxtApellidop);
-            apellido_m = myView.findViewById(R.id.duCEtxtApelldiom);
-            usuario = myView.findViewById(R.id.duCEtxtUsuario);
-            password = myView.findViewById(R.id.duCEtxtPassword);
+            eTxtNombre = myView.findViewById(R.id.duCEtxtNombre);
+            eTxtApellido_p = myView.findViewById(R.id.duCEtxtApellidop);
+            eTxtApellido_m = myView.findViewById(R.id.duCEtxtApelldiom);
+            eTxtUsuario = myView.findViewById(R.id.duCEtxtUsuario);
+            eTxtPassword = myView.findViewById(R.id.duCEtxtPassword);
             spinRol = myView.findViewById(R.id.duCSpnRoles);
             imgUser = myView.findViewById(R.id.duCimgVUsuario);
             imgBtnCamera = myView.findViewById(R.id.duCImgBtnCamara);
@@ -115,9 +110,11 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             fabSave.setOnClickListener(this);
             imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
             imgBtnCamera.setOnClickListener(this);
+            spinRol.setOnItemClickListener(this);
 
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
+                this.listRoles = list; //para poder manipular los roles en esta clase.
                 ArrayList<String> data = new ArrayList<String>();
                 for (roles rol: list) {
                     data.add(rol.getNombre());
@@ -136,20 +133,20 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                                     spinRol.setSelection(contador);
                                 }
                             }
-                            nombre.setText(getArguments().getString("nombre"));
-                            apellido_p.setText(getArguments().getString("apellido_p"));
-                            apellido_m.setText(getArguments().getString("apellido_m"));
-                            usuario.setText(getArguments().getString("usuario"));
-                            password.setText(getArguments().getString("password"));
+                            eTxtNombre.setText(getArguments().getString("nombre"));
+                            eTxtApellido_p.setText(getArguments().getString("apellido_p"));
+                            eTxtApellido_m.setText(getArguments().getString("apellido_m"));
+                            eTxtUsuario.setText(getArguments().getString("usuario"));
+                            eTxtPassword.setText(getArguments().getString("password"));
                             Picasso.with(getContext()).load(config.getUrlImages() + getArguments().getString("imagen")).fit().into(imgUser);
                             break;
                         case "N":
                             id_usuario.setText("...");
-                            nombre.setText("");
-                            apellido_p.setText("");
-                            apellido_m.setText("");
-                            usuario.setText("");
-                            password.setText("");
+                            eTxtNombre.setText("");
+                            eTxtApellido_p.setText("");
+                            eTxtApellido_m.setText("");
+                            eTxtUsuario.setText("");
+                            eTxtPassword.setText("");
                             imgUser.setImageResource(0);
                             break;
                     } //fin de switch
@@ -161,7 +158,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                         if (result.getResultCode() == RESULT_OK) {
                             int rotate = 0;
                             try {
-                                ExifInterface exif = new ExifInterface(getPath(imageUri));
+                                ExifInterface exif = new ExifInterface(Objects.requireNonNull(getPath(imageUri)));
                                 int orientation  = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
                                 switch (orientation) {
                                     case ExifInterface.ORIENTATION_ROTATE_270:
@@ -185,7 +182,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                     });
         } //fin detalle fragment
     } //fin onViewCreated
-
     ActivityResultLauncher<String> getImageGallery = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             new ActivityResultCallback<Uri>() {
@@ -225,15 +221,33 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
          **/
         int identifier = v.getId();
         if (R.id.fab == identifier) {
-            }  else if (R.id.duCImgBtnCamara == identifier) {
+            //Construir los datos para mandar a la clase httpCall
+            ContentValues container = config.containerBuid();
+            container.put("nombre", eTxtNombre.getText().toString().trim());
+            container.put("apellido_p", eTxtApellido_p.getText().toString().trim());
+            container.put("apellido_m", eTxtApellido_m.getText().toString().trim());
+            container.put("usuario", eTxtUsuario.getText().toString().trim());
+            container.put("password", eTxtPassword.getText().toString().trim());
 
+            imgUser.setDrawingCacheEnabled(true);
+            imgUser.buildDrawingCache();
+            Bitmap bit = ((BitmapDrawable) imgUser.getDrawable()).getBitmap();
+            File imgFile = fileConverter(bit);
+            container.put("imagen", String.valueOf(imgFile));
+            httpCall.saveUser(list -> {
+                config.showMessageUser(v, "EL USUARIO " + list.get(0).getNombre() + " " + list.get(0).getApellido_p() + "" +
+                        " " + list.get(0).getApellido_m() + " HA SIGO GUARDADO");
+            },v, container, imgFile);
+
+
+
+            }  else if (R.id.duCImgBtnCamara == identifier) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 ContentValues descriptions = new ContentValues();
                 descriptions.put(MediaStore.Images.Media.TITLE, "My imagen");
                 descriptions.put(MediaStore.Images.Media.DESCRIPTION, "Photo Taken On" + System.currentTimeMillis());
-                imageUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions);
+                imageUri = requireContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, descriptions); //El requireContext es utilizado en fragmentos en ces de gertContext()
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-
                 activityResultLauncherCamera.launch(intent);
             }  else if (R.id.duCImgBtnGaleria == identifier) {
                 Intent galeria = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);//Intent para abrir la galería.
@@ -257,8 +271,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         cursor.close();
         return s; // Devuelve la ruta.
     } //Fin de getPath()
-
-
     /**
      * Funcióm getGuardarImagen, desompone una imagen en una matriz para luego procesarla en un mapa de bits
      * Devuelve un bitMap con la imagen comprimida.
@@ -270,36 +282,64 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         String path = "";
         Bitmap picture = null;
         File imagen;
-        try {
+        try { //Del getBitMap
             path = getPath(recurso); //Traer la ruta del recurso Uri.
-            picture = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), recurso); //Alamacenar en la variable la imagen nueva guardada.
-            imagen = new File(path); //Crear
-            try {
-                FileOutputStream salida = new FileOutputStream(imagen); //Convetir en bytes.
-                picture.compress(Bitmap.CompressFormat.JPEG, 50, salida); //Comprimir.
-                salida.flush();//Limpiar los recursos de memoria
-                salida.close(); //Cerrar el archivo.
-                Matrix matrix = new Matrix(); //Nueva imagen de bits.
-                matrix.postRotate(giro);//Aplicar la rotación de la imagen ya comprimida.
-                //Armar nuevamente la imaen en Bitmap.
-                picture = Bitmap.createBitmap(picture,
-                        0,
-                        0 , picture.getWidth(),
-                        picture.getHeight(),
-                        matrix,
-                        true);
-            } catch (Exception e) {
-
-                Log.e("Fallo al intento de gaurdar", e.getMessage());
-            } //fin de try
-
+            picture = MediaStore.Images.Media.getBitmap(requireContext().getContentResolver(), recurso); //Alamacenar en la variable la imagen nueva guardada.
+                if (path != null) {
+                    imagen = new File(path); //Crear
+                    FileOutputStream salida = new FileOutputStream(imagen); //Convetir en bytes.
+                    picture.compress(Bitmap.CompressFormat.JPEG, 50, salida); //Comprimir.
+                    salida.flush();//Limpiar los recursos de memoria
+                    salida.close(); //Cerrar el archivo.
+                    Matrix matrix = new Matrix(); //Nueva imagen de bits.
+                    matrix.postRotate(giro);//Aplicar la rotación de la imagen ya comprimida.
+                    //Armar nuevamente la imaen en Bitmap.
+                    picture = Bitmap.createBitmap(picture,
+                            0,
+                            0 , picture.getWidth(),
+                            picture.getHeight(),
+                            matrix,
+                            true);
+                }
         } catch (Exception e) {
+            Log.e("El siguiente error ha ocurrido: ", e.getMessage());
+        } //fin de try getBitmap
 
-        } //fin de try
-        //Retornar la imagen en mapa de Bits.
-        return picture;
+        return picture; //Retornar la imagen en mapa de Bits.
     } //Fin de getGuardar()
 
+    private File fileConverter(Bitmap bitmap) {
+        //Crear un nuevo archivo para escribir dentro el mapa de bits.
+        File f = new File(getContext().getCacheDir(), "ferchio");
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //Convertir el bitMap a un arreglo de bytes
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50,bos);
+        byte[] bitmapdata = bos.toByteArray();
+        //Escribir mapa de bits a array de bytes.
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(f);
 
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            fos.write(bitmapdata);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return f;
+    } //Fin de fileConverter.
 
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        id_rol = listRoles.get(position).getId_rol();
+    }
 }

@@ -1,16 +1,23 @@
 package com.example.appusers.configuracion;
 
+import android.content.ContentValues;
+import android.view.View;
+
+import com.example.appusers.retrofit.interfaceRetrofit;
+import com.google.android.material.snackbar.Snackbar;
+
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class config {
     //Variable _BASEURL, se encarga de almacenar la dirección ip del servidor o nombre de dominio cuando el host
     //se encuentre en un servidor remoto
-    private static String _IP_SERVER = "http://192.168.1.65/";
-    private static final String _NOMBRE_PROYECTO = "apiLabVirtual/";
+    private static String _IP_SERVER = "http://192.168.1.72/";
+    private static final String _NOMBRE_PROYECTO = "api-Laravel-AdminLte/";
     private static final String _URI = "public/api/";
     private static final String _URI_IMAGES = "public/storage/";
     private static final String _BASEURL = _IP_SERVER + _NOMBRE_PROYECTO + _URI;
+    private static ContentValues container = null;
     //    //Una variable con el tipo de dato retrofit para empezar a procesar la petición.
     private static Retrofit retrofit;
     //función para crear la petición
@@ -38,5 +45,22 @@ public class config {
 
     public static String getBaseurl() {
         return _BASEURL;
+    }
+
+    public static interfaceRetrofit getInterfaceRtrofit() {
+        interfaceRetrofit retrofit = getRetrofit().create(interfaceRetrofit.class);
+        return  retrofit;
+    }
+    public static void showMessageUser(View v,String message) {
+        Snackbar.make(v,message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    public static ContentValues containerBuid() {
+        if (container == null) {
+            container = new ContentValues();
+        } else {
+            container.clear();
+        }
+        return container;
     }
 }
