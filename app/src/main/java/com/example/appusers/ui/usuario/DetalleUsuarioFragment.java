@@ -17,6 +17,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,7 +55,7 @@ import java.util.Objects;
 
 import static android.app.Activity.RESULT_OK;
 
-public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener{
+public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener{
 
     private DetalleUsuarioViewModel mViewModel;
 
@@ -110,7 +112,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             fabSave.setOnClickListener(this);
             imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
             imgBtnCamera.setOnClickListener(this);
-            spinRol.setOnItemClickListener(this);
+            spinRol.setOnItemSelectedListener(this);
 
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
@@ -223,6 +225,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         if (R.id.fab == identifier) {
             //Construir los datos para mandar a la clase httpCall
             ContentValues container = config.containerBuid();
+            container.put("id_rol", this.id_rol);
             container.put("nombre", eTxtNombre.getText().toString().trim());
             container.put("apellido_p", eTxtApellido_p.getText().toString().trim());
             container.put("apellido_m", eTxtApellido_m.getText().toString().trim());
@@ -233,10 +236,10 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             imgUser.buildDrawingCache();
             Bitmap bit = ((BitmapDrawable) imgUser.getDrawable()).getBitmap();
             File imgFile = fileConverter(bit);
-            container.put("imagen", String.valueOf(imgFile));
             httpCall.saveUser(list -> {
                 config.showMessageUser(v, "EL USUARIO " + list.get(0).getNombre() + " " + list.get(0).getApellido_p() + "" +
                         " " + list.get(0).getApellido_m() + " HA SIGO GUARDADO");
+                NavHostFragment.findNavController(requireParentFragment()).navigate(R.id.nav_home);
             },v, container, imgFile);
 
 
@@ -338,8 +341,16 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         return f;
     } //Fin de fileConverter.
 
+
+
+
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         id_rol = listRoles.get(position).getId_rol();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

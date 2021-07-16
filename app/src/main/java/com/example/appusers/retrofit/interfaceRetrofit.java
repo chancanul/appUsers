@@ -46,6 +46,6 @@ public interface interfaceRetrofit {
                                   @Part("apellido_m") RequestBody apellido_m,
                                   @Part("usuario") RequestBody noombre,
                                   @Part("password") RequestBody password,
-                                  @Part ("imagen") MultipartBody.Part imagen
+                                  @Part MultipartBody.Part imagen
                                   );
 }

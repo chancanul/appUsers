@@ -47,7 +47,6 @@ public class httpCall {
             public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
                 callBack.usuarios(response.body());
             }
-
             @Override
             public void onFailure(Call<List<usuarios>> call, Throwable t) {
                 Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
