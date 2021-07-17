@@ -62,18 +62,14 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private View myView;
     private FloatingActionButton fabSave;
     private EditText eTxtNombre, eTxtApellido_p, eTxtApellido_m, eTxtUsuario, eTxtPassword;
-    private TextView id_usuario;
+    private TextView txtVId_usuario;
     private Spinner spinRol;
     private ImageView imgUser;
     private ImageButton imgBtnCamera, imgBtnGallery;
     private adapterSpiner fill;
     private Uri imageUri;
-    private static final int _IMAGE_CAPTURE = 100;
-    private static final int _PICK_GALLERY = 100;
     ActivityResultLauncher<Intent> activityResultLauncherCamera;
-    private String mCurrentPhotoPhat;
     private Bitmap thumbnail;//Variable para almacenar el mapa de bits.
-    private List<usuarios> listUsuarios;
     private List<roles> listRoles;
     private String id_rol="";
 
@@ -96,7 +92,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         this.myView = view;
         MainActivity detalleFragment = (MainActivity) getActivity();
         if (detalleFragment != null) {
-            id_usuario = myView.findViewById(R.id.duCEtxtid);
+            txtVId_usuario = myView.findViewById(R.id.duCEtxtid);
             eTxtNombre = myView.findViewById(R.id.duCEtxtNombre);
             eTxtApellido_p = myView.findViewById(R.id.duCEtxtApellidop);
             eTxtApellido_m = myView.findViewById(R.id.duCEtxtApelldiom);
@@ -113,7 +109,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
             imgBtnCamera.setOnClickListener(this);
             spinRol.setOnItemSelectedListener(this);
-
              //Llenar el spiner roles
             httpCall.getRoles(list -> {
                 this.listRoles = list; //para poder manipular los roles en esta clase.
@@ -127,7 +122,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                     accion = getArguments().getString("accion");
                     switch (accion) {
                         case "M":
-                            id_usuario.setText(getArguments().getString("id_usuario"));
+                            txtVId_usuario.setText(getArguments().getString("id_usuario"));
                             int contador=-1;
                             for (roles rol:list) {
                                 contador ++;
@@ -143,7 +138,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                             Picasso.with(getContext()).load(config.getUrlImages() + getArguments().getString("imagen")).fit().into(imgUser);
                             break;
                         case "N":
-                            id_usuario.setText("...");
+                            txtVId_usuario.setText("...");
                             eTxtNombre.setText("");
                             eTxtApellido_p.setText("");
                             eTxtApellido_m.setText("");
@@ -201,9 +196,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         mViewModel = new ViewModelProvider(this).get(DetalleUsuarioViewModel.class);
         // TODO: Use the ViewModel
     }
-
-
-
     @Override
     public void onClick(View v) {
         //La sentencia switch en este caso a partir de la versión 7 ya no son definitivos por lo tanto para
@@ -223,27 +215,43 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
          **/
         int identifier = v.getId();
         if (R.id.fab == identifier) {
-            //Construir los datos para mandar a la clase httpCall
-            ContentValues container = config.containerBuid();
-            container.put("id_rol", this.id_rol);
-            container.put("nombre", eTxtNombre.getText().toString().trim());
-            container.put("apellido_p", eTxtApellido_p.getText().toString().trim());
-            container.put("apellido_m", eTxtApellido_m.getText().toString().trim());
-            container.put("usuario", eTxtUsuario.getText().toString().trim());
-            container.put("password", eTxtPassword.getText().toString().trim());
+            if (accion == "N") {
+                //Construir los datos para mandar a la clase httpCall
+                ContentValues container = config.containerBuid();
+                container.put("id_rol", this.id_rol);
+                container.put("nombre", eTxtNombre.getText().toString().trim());
+                container.put("apellido_p", eTxtApellido_p.getText().toString().trim());
+                container.put("apellido_m", eTxtApellido_m.getText().toString().trim());
+                container.put("usuario", eTxtUsuario.getText().toString().trim());
+                container.put("password", eTxtPassword.getText().toString().trim());
 
-            imgUser.setDrawingCacheEnabled(true);
-            imgUser.buildDrawingCache();
-            Bitmap bit = ((BitmapDrawable) imgUser.getDrawable()).getBitmap();
-            File imgFile = fileConverter(bit);
-            httpCall.saveUser(list -> {
-                config.showMessageUser(v, "EL USUARIO " + list.get(0).getNombre() + " " + list.get(0).getApellido_p() + "" +
-                        " " + list.get(0).getApellido_m() + " HA SIGO GUARDADO");
-                NavHostFragment.findNavController(requireParentFragment()).navigate(R.id.nav_home);
-            },v, container, imgFile);
-
-
-
+                imgUser.setDrawingCacheEnabled(true);
+                imgUser.buildDrawingCache();
+                Bitmap bit = ((BitmapDrawable) imgUser.getDrawable()).getBitmap();
+                File imgFile = fileConverter(bit);
+                httpCall.saveUser(list -> {
+                    config.showMessageUser(v, "EL USUARIO " + list.get(0).getNombre() + " " + list.get(0).getApellido_p() + "" +
+                            " " + list.get(0).getApellido_m() + " HA SIGO GUARDADO");
+                    NavHostFragment.findNavController(requireParentFragment()).navigate(R.id.nav_home);
+                }, v, container, imgFile);
+            } else {
+                ContentValues container = config.containerBuid();
+                container.put("id_usuario", txtVId_usuario.getText().toString().trim());
+                container.put("id_rol", this.id_rol);
+                container.put("nombre", eTxtNombre.getText().toString().trim());
+                container.put("apellido_p", eTxtApellido_p.getText().toString().trim());
+                container.put("apellido_m", eTxtApellido_m.getText().toString().trim());
+                container.put("usuario", eTxtUsuario.getText().toString().trim());
+                container.put("password", eTxtPassword.getText().toString().trim());
+                imgUser.setDrawingCacheEnabled(true);
+                imgUser.buildDrawingCache();
+                Bitmap bit = ((BitmapDrawable) imgUser.getDrawable()).getBitmap();
+                File imgFile = fileConverter(bit);
+                httpCall.updateUser(list -> {
+                       config.showMessageUser(v, "Los datos del usuario No: " + list.get(0).getId_usuario());
+                       NavHostFragment.findNavController(requireParentFragment()).navigate(R.id.nav_home);
+                }, v, container,imgFile);
+            }
             }  else if (R.id.duCImgBtnCamara == identifier) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 ContentValues descriptions = new ContentValues();
@@ -266,7 +274,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private String getPath(Uri uri) {
         //Arreglo para procesar la ruta por medio de un cursor.
         String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, null);
+        Cursor cursor = requireActivity().getContentResolver().query(uri, projection, null, null, null);
         if (cursor == null) return null;
         int colum_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
@@ -313,12 +321,14 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
 
     private File fileConverter(Bitmap bitmap) {
         //Crear un nuevo archivo para escribir dentro el mapa de bits.
-        File f = new File(getContext().getCacheDir(), "ferchio");
+        File f = new File(requireContext().getCacheDir(), "ferchio");
+        /**
         try {
             f.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
+         **/
         //Convertir el bitMap a un arreglo de bytes
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50,bos);

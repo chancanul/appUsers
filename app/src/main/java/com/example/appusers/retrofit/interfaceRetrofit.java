@@ -48,4 +48,13 @@ public interface interfaceRetrofit {
                                   @Part("password") RequestBody password,
                                   @Part MultipartBody.Part imagen
                                   );
+    Call<List<usuarios>> updateUSer(@Url String url,
+                                    @Part("id_rol") RequestBody id_rol,
+                                    @Part("nombre") RequestBody nombre,
+                                    @Part("apellido_p") RequestBody apellido_p,
+                                    @Part("apellido_m") RequestBody apellido_m,
+                                    @Part("usuario") RequestBody usuario,
+                                    @Part("password") RequestBody password,
+                                    @Part MultipartBody.Part _method,
+                                    @Part MultipartBody.Part imagen);
 }

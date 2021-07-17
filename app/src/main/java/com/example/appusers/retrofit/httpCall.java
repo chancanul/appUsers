@@ -70,7 +70,7 @@ public class httpCall {
         });
   }
   static public void saveUser(onResponseUsuarios callBack, View v, ContentValues valores, File imgFile) {
-      interfaceRetrofit retrofit = config.getInterfaceRtrofit();
+
       RequestBody reqBD_id_rol = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("id_rol"));
       RequestBody reqBD_nombre = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("nombre"));
       RequestBody reqBD_apellido_p = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("apellido_p"));
@@ -79,6 +79,7 @@ public class httpCall {
       RequestBody reqBD_password = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("password"));
       RequestBody reqBD_imagen = RequestBody.create(MediaType.parse("image/*"), imgFile); // Definir el tipo de archivo debe ser imagen.
       MultipartBody.Part multiParBD_File = MultipartBody.Part.createFormData("imagen", (imgFile.getName()), reqBD_imagen);
+      interfaceRetrofit retrofit = config.getInterfaceRtrofit();
       Call <List<usuarios>> call = retrofit.saveUser(config.getBaseurl() + "actUser",reqBD_id_rol, reqBD_nombre, reqBD_apellido_p, reqBD_apellido_m,reqBD_usuario, reqBD_password, multiParBD_File);
       call.enqueue(new Callback<List<usuarios>>() {
           @Override
@@ -88,6 +89,37 @@ public class httpCall {
           @Override
           public void onFailure(Call<List<usuarios>> call, Throwable t) {
               config.showMessageUser(v, "Servidor Inaccesible: " + t.getMessage());
+          }
+      });
+  }
+  static public void updateUser(onResponseUsuarios callBack, View v, ContentValues valores, File imgFile) {
+      RequestBody reqBD_id_rol = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("id_rol"));
+      RequestBody reqBD_nombre = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("nombre"));
+      RequestBody reqBD_apellido_p = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("apellido_p"));
+      RequestBody reqBD_apellido_m = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("apellido_m"));
+      RequestBody reqBD_usuario = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("usuario"));
+      RequestBody reqBD_password = RequestBody.create(MediaType.parse("multipart/form-data"), valores.getAsString("password"));
+      MultipartBody.Part multParMethod = MultipartBody.Part.createFormData("_method", "PUT");
+      RequestBody reqBD_imagen = RequestBody.create(MediaType.parse("image/*"), imgFile); // Definir el tipo de archivo debe ser imagen.
+      MultipartBody.Part multiParBD_File = MultipartBody.Part.createFormData("imagen", (imgFile.getName()), reqBD_imagen);
+      interfaceRetrofit retrofit = config.getInterfaceRtrofit();
+      Call<List<usuarios>> call = retrofit.updateUSer(config.getBaseurl() + "actUser/" + valores.getAsString("id_usuario"),
+                                                      reqBD_id_rol,
+                                                      reqBD_nombre,
+                                                      reqBD_apellido_p,
+                                                      reqBD_apellido_m,
+                                                      reqBD_usuario,
+                                                      reqBD_password,
+                                                       multiParBD_File,
+                                                       multParMethod);
+      call.enqueue(new Callback<List<usuarios>>() {
+          @Override
+          public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
+              callBack.usuarios(response.body());
+          }
+          @Override
+          public void onFailure(Call<List<usuarios>> call, Throwable t) {
+             config.showMessageUser(v, "No ha sido posible guardar los datos del usuario: " + t.getMessage());
           }
       });
   }
