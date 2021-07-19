@@ -40,7 +40,6 @@ public class UsuarioFragment extends Fragment {
 
     private UsuarioViewModel usuarioViewModel;
     private FragmentUsuarioBinding binding;
-
     private RecyclerView myRecycler;
     private View myView;
     private adapterusuario myAdapter;

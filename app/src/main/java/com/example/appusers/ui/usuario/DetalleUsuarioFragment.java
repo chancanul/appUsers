@@ -34,6 +34,7 @@ import com.example.appusers.MainActivity;
 import com.example.appusers.R;
 import com.example.appusers.adaptadores.adapterSpiner;
 import com.example.appusers.configuracion.config;
+import com.example.appusers.databinding.DetalleUsuarioFragmentBinding;
 import com.example.appusers.modelos.roles;
 import com.example.appusers.modelos.usuarios;
 import com.example.appusers.retrofit.httpCall;
@@ -57,8 +58,8 @@ import static android.app.Activity.RESULT_OK;
 
 public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener{
 
-    private DetalleUsuarioViewModel mViewModel;
-
+    private DetalleUsuarioViewModel detalleUsuarioViewModel;
+    private DetalleUsuarioFragmentBinding binding;
     private View myView;
     private FloatingActionButton fabSave;
     private EditText eTxtNombre, eTxtApellido_p, eTxtApellido_m, eTxtUsuario, eTxtPassword;
@@ -83,7 +84,11 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.detalle_usuario_fragment, container, false);
+        detalleUsuarioViewModel = new ViewModelProvider(this).get(DetalleUsuarioViewModel.class);
+        binding = DetalleUsuarioFragmentBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+       // return inflater.inflate(R.layout.detalle_usuario_fragment, container, false);
+
     }
 
     @Override
@@ -190,12 +195,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                 }
             }
     );
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(DetalleUsuarioViewModel.class);
-        // TODO: Use the ViewModel
-    }
+
     @Override
     public void onClick(View v) {
         //La sentencia switch en este caso a partir de la versión 7 ya no son definitivos por lo tanto para
