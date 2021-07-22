@@ -39,17 +39,25 @@ public class httpCall {
         });
   }
 
-  static public void getUsuarios(onResponseUsuarios callBack, View v) {
+  static public void getUsuarios(onResponseUsuarios callBack) {
         interfaceRetrofit retrofit = config.getRetrofit().create(interfaceRetrofit.class);
         Call <List<usuarios>> call = retrofit.getusuarios("actUser");
         call.enqueue(new Callback<List<usuarios>>() {
             @Override
             public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
-                callBack.usuarios(response.body());
+                if (response.code() == 200) {
+                    if (response.body().get(0) != null) {
+                        callBack.usuarios(response.body(), "200");
+                    } else {
+                        callBack.usuarios(response.body(), "null");
+                    }
+                }
             }
             @Override
             public void onFailure(Call<List<usuarios>> call, Throwable t) {
-                Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
+                List<usuarios> list = null;
+                callBack.usuarios(list,"void");
+                //Snackbar.make(v,"Servidor inaccesible",Snackbar.LENGTH_SHORT).show();
             }
         });
   }
@@ -84,7 +92,7 @@ public class httpCall {
       call.enqueue(new Callback<List<usuarios>>() {
           @Override
           public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
-              callBack.usuarios(response.body());
+             // callBack.usuarios(response.body());
           }
           @Override
           public void onFailure(Call<List<usuarios>> call, Throwable t) {
@@ -115,7 +123,7 @@ public class httpCall {
       call.enqueue(new Callback<List<usuarios>>() {
           @Override
           public void onResponse(Call<List<usuarios>> call, Response<List<usuarios>> response) {
-              callBack.usuarios(response.body());
+            //  callBack.usuarios(response.body());
           }
           @Override
           public void onFailure(Call<List<usuarios>> call, Throwable t) {

@@ -8,22 +8,41 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appusers.R;
 import com.example.appusers.configuracion.config;
+import com.example.appusers.databinding.DetalleUsuarioFragmentBinding;
+import com.example.appusers.databinding.FragmentUsuarioBinding;
+import com.example.appusers.databinding.ViewUsersBinding;
 import com.example.appusers.modelos.usuarios;
+import com.example.appusers.ui.usuario.DetalleUsuarioFragment;
+import com.example.appusers.ui.usuario.UsuarioFragment;
 import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customViewHolder> implements View.OnClickListener {
+public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customViewHolder> {
+    private ViewUsersBinding binding;
     Context contexto;
     List<usuarios> listado;
-    private View myView;
-    private View.OnClickListener listener;
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener{
+        void onClick(View v, int position);
+    }
+
+    public void setListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public usuarios getItemAt(int position) {
+        return listado.get(position);
+    }
 
     public adapterusuario(Context contexto, List listado) {
         this.contexto = contexto;
@@ -33,20 +52,19 @@ public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customVi
     @NotNull
     @Override
     public customViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
-        LayoutInflater mostrarControl = LayoutInflater.from(parent.getContext());
-        myView = mostrarControl.inflate(R.layout.view_users, parent, false);
-        myView.setOnClickListener(this);
-        return new customViewHolder(myView);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        binding = ViewUsersBinding.inflate(inflater, parent, false);
+        return new customViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull customViewHolder holder, int position) {
         String image = config.getUrlImages();
-        holder.rcvId.setText(listado.get(position).getId_usuario());
-        holder.rcvNombre.setText(listado.get(position).getNombre());
-        holder.rcvApellido.setText(listado.get(position).getApellido_p());
-        holder.rcvRol.setText(listado.get(position).getRoles().getNombre());
-        Picasso.with(contexto).load(image + listado.get(position).getImagen()).fit().into(holder.rcvImgagen);
+        holder.binding.txtVUCId.setText(listado.get(position).getId_usuario());
+        holder.binding.txtVUCNombre.setText(listado.get(position).getNombre());
+        holder.binding.txtVUCApAm.setText(listado.get(position).getApellido_p());
+        holder.binding.txtVUCRol.setText(listado.get(position).getRoles().getNombre());
+        Picasso.with(contexto).load(image + listado.get(position).getImagen()).fit().into(holder.binding.imgVUser);
     }
 
     @Override
@@ -55,30 +73,28 @@ public class adapterusuario extends RecyclerView.Adapter<adapterusuario.customVi
     }
      //Este es el evento onclick del implement View.OnClickListener de la clase.
     //La variable listener es definida a nivel de la clase
-    @Override
-    public void onClick(View v) {
-      if(listener != null) {
-          listener.onClick(v);
-      }
-    }
-    public void setOnClickListener (View.OnClickListener listener) {
-        this.listener = listener;
-    }
+    //@Override
+    //public void onClick(View v) {
+      //if(listener != null) {
+         // listener.onClick(v);
+     // }
+    //}
+   // public void setOnClickListener (View.OnClickListener listener) {
+       // this.listener = listener;
+    //}
     //Esta clase es la primera en definirse, su objetivo es vincular la vista view_users con la
     //clase adapter es decir esta clase
-    public class customViewHolder extends RecyclerView.ViewHolder {
+    public class customViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         //Declarar los controles a utilizar
-        TextView rcvId, rcvNombre, rcvApellido, rcvRol;
-        ImageView rcvImgagen;
-        final View myView;
-        public customViewHolder(@NonNull @NotNull View itemView) {
-            super(itemView);
-            myView = itemView;
-            rcvId = myView.findViewById(R.id.txtVUCId);
-            rcvNombre = myView.findViewById(R.id.txtVUCNombre);
-            rcvApellido = myView.findViewById(R.id.txtVUCApAm);
-            rcvRol = myView.findViewById(R.id.txtVUCRol);
-            rcvImgagen = myView.findViewById(R.id.imgVUser);
+        private ViewUsersBinding binding;
+        public customViewHolder(ViewUsersBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+            binding.getRoot().setOnClickListener(this);
+        }
+        @Override
+        public void onClick(View v) {
+            listener.onClick(v, getAdapterPosition());
         }
     }
 }

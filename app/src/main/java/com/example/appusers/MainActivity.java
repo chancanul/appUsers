@@ -8,9 +8,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.appusers.configuracion.config;
+import com.example.appusers.ui.usuario.UsuarioFragment;
+import com.example.appusers.ui.usuario.UsuarioFragmentViewModel;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
@@ -23,7 +26,7 @@ import com.example.appusers.databinding.ActivityMainBinding;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
-
+    private UsuarioFragmentViewModel usuarioFragmentViewModel;
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
 
@@ -33,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         //Traer los valores del bundle
         Intent intent = this.getIntent();
         Bundle valores = intent.getExtras();
