@@ -30,12 +30,20 @@ public class httpCall {
         request.enqueue(new Callback<List<roles>>() {
             @Override
             public void onResponse(Call<List<roles>> call, Response<List<roles>> response) {
-                callBack.roles(response.body());
+                if (response.code() == 200) {
+                    if (response.body().get(0) != null) {
+                        callBack.roles(response.body(), "200");
+                    } else {
+                        callBack.roles(response.body(), "null");
+                    }
+                }
+
             }
             @Override
             public void onFailure(Call<List<roles>> call, Throwable t) {
-
-            }
+                List<roles> list = null;
+                callBack.roles(list,"void");
+        }
         });
   }
 

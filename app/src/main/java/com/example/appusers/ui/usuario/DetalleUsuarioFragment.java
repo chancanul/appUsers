@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import androidx.exifinterface.media.ExifInterface;
 
 import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 
 import com.example.appusers.MainActivity;
 import com.example.appusers.R;
@@ -50,8 +52,7 @@ import java.util.Objects;
 import static android.app.Activity.RESULT_OK;
 
 public class DetalleUsuarioFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener{
-
-    private DetalleUsuarioViewModel detalleUsuarioViewModel;
+    private UsuarioFragmentViewModel usuarioFragmentViewModel;
     private DetalleUsuarioFragmentBinding binding;
     private FloatingActionButton fabSave;
     private adapterSpiner fill;
@@ -60,108 +61,109 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
     private Bitmap thumbnail;//Variable para almacenar el mapa de bits.
     private List<roles> listRoles;
     private String id_rol="";
-
-
-
     private String accion = "";
+
     public static DetalleUsuarioFragment newInstance() {
         return new DetalleUsuarioFragment();
     }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        detalleUsuarioViewModel = new ViewModelProvider(requireActivity()).get(DetalleUsuarioViewModel.class);
+        usuarioFragmentViewModel = new ViewModelProvider(requireActivity()).get(UsuarioFragmentViewModel.class);
         binding = DetalleUsuarioFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();
        // return inflater.inflate(R.layout.detalle_usuario_fragment, container, false);
-
     }
-
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         MainActivity detalleFragment = (MainActivity) getActivity();
         if (detalleFragment != null) {
-            //txtVId_usuario = myView.findViewById(R.id.duCEtxtid);
-            //eTxtNombre = myView.findViewById(R.id.duCEtxtNombre);
-           // eTxtApellido_p = myView.findViewById(R.id.duCEtxtApellidop);
-           // eTxtApellido_m = myView.findViewById(R.id.duCEtxtApelldiom);
-            //eTxtUsuario = myView.findViewById(R.id.duCEtxtUsuario);
-           // eTxtPassword = myView.findViewById(R.id.duCEtxtPassword);
-            //spinRol = myView.findViewById(R.id.duCSpnRoles);
-           // imgUser = myView.findViewById(R.id.duCimgVUsuario);
-           // imgBtnCamera = myView.findViewById(R.id.duCImgBtnCamara);
-            //imgBtnGallery = myView.findViewById(R.id.duCImgBtnGaleria);
-
             fabSave = detalleFragment.findViewById(R.id.fab);
             fabSave.setImageResource(R.drawable.save);
             fabSave.setOnClickListener(this);
             binding.duCImgBtnGaleria.setOnClickListener(v->getImageGallery.launch("image/*"));
-            //imgBtnGallery.setOnClickListener(v -> getImageGallery.launch("image/*"));
             binding.duCImgBtnCamara.setOnClickListener(this);
-           // imgBtnCamera.setOnClickListener(this);
             binding.duCSpnRoles.setOnItemSelectedListener(this);
-            //spinRol.setOnItemSelectedListener(this);
              //Llenar el spiner roles
-            httpCall.getRoles(list -> {
-                this.listRoles = list; //para poder manipular los roles en esta clase.
-                ArrayList<String> data = new ArrayList<String>();
-                for (roles rol: list) {
-                    data.add(rol.getNombre());
+            usuarioFragmentViewModel.requestRoles().observe(getViewLifecycleOwner(), code -> {
+                if (code.equals("200")) {
+                    usuarioFragmentViewModel.getRoles().observe(getViewLifecycleOwner(), listRoles -> {
+                        ArrayList<String> data = new ArrayList<String>();
+                        for (roles rol: listRoles) {
+                            data.add(rol.getNombre());
+                        }
+                            fill = new adapterSpiner(getContext(), binding.duCSpnRoles,data);
+                            fill.fillSpiner();
+                            if (getArguments() != null) {
+                                accion = getArguments().getString("accion");
+                                switch (accion) {
+                                    case "M":
+                                        usuarioFragmentViewModel.getIdUsuario().observe(getViewLifecycleOwner(), id_usuario -> {
+                                            binding.duCEtxtid.setText(id_usuario);
+                                        });
+                                        usuarioFragmentViewModel.getNombre().observe(getViewLifecycleOwner(), nombre -> {
+                                            binding.duCEtxtNombre.setText(nombre);
+                                        });
+                                        usuarioFragmentViewModel.getApellidoP().observe(getViewLifecycleOwner(), apellidop -> {
+                                            binding.duCEtxtApellidop.setText(apellidop);
+                                        });
+                                        usuarioFragmentViewModel.getApellidoM().observe(getViewLifecycleOwner(), apellidom -> {
+                                            binding.duCEtxtApelldiom.setText(apellidom);
+                                        });
+                                        usuarioFragmentViewModel.getIdUsuario().observe(getViewLifecycleOwner(), usuario -> {
+                                            binding.duCEtxtUsuario.setText(usuario);
+                                        });
+                                        usuarioFragmentViewModel.getPassword().observe(getViewLifecycleOwner(), password -> {
+                                            binding.duCEtxtPassword.setText(password);
+                                        });
+                                        usuarioFragmentViewModel.getImage().observe(getViewLifecycleOwner(), imagen -> {
+                                            Picasso.with(getContext()).load(config.getUrlImages() + imagen).fit().into(binding.duCimgVUsuario);
+                                        });
+                                        usuarioFragmentViewModel.getRoles().observe(getViewLifecycleOwner(), list -> {
+                                            usuarioFragmentViewModel.getIdRol().observe(getViewLifecycleOwner(), id_rol -> {
+                                                int contador = -1;
+                                                for (roles rol: list) {
+                                                    contador++;
+                                                    if (rol.getId_rol().equals(id_rol))
+                                                        binding.duCSpnRoles.setSelection(contador);
+                                                }
+                                            });
+                                });
+
+                                        /**
+                                         usuarioFragmentViewModel.getSelected().observe(getViewLifecycleOwner(), item ->{
+                                         binding.duCEtxtid.setText(item.getId_usuario());
+                                         binding.duCEtxtNombre.setText(item.getNombre());
+                                         binding.duCEtxtApellidop.setText(item.getApellido_m());
+                                         binding.duCEtxtUsuario.setText(item.getUsuario());
+                                         binding.duCEtxtPassword.setText(item.getPassword());
+                                         Picasso.with(getContext()).load(config.getUrlImages() + item.getImagen()).fit().into(binding.duCimgVUsuario);
+                                         });
+                                         **/
+                                        break;
+                                    case "N":
+                                        binding.duCEtxtid.setText("");
+                                        binding.duCEtxtNombre.setText("");
+                                        binding.duCEtxtApellidop.setText("");
+                                        binding.duCEtxtApelldiom.setText("");
+                                        binding.duCEtxtUsuario.setText("");
+                                        binding.duCEtxtPassword.setText("");
+                                        binding.duCimgVUsuario.setImageResource(0);
+                                        break;
+                                } //fin de switch
+                            } //fin get arguments
+
+                    });
                 }
-                fill = new adapterSpiner(getContext(), binding.duCSpnRoles,data);
-                fill.fillSpiner();
-                if (getArguments() != null) {
-                    accion = getArguments().getString("accion");
-                    switch (accion) {
-                        case "M":
-                            detalleUsuarioViewModel.getId_usuario().observe(getViewLifecycleOwner(), idUser -> {
-                                binding.duCEtxtid.setText(idUser);
-                            });
-                            detalleUsuarioViewModel.getNombre().observe(getViewLifecycleOwner(), nombre -> {
-                                binding.duCEtxtNombre.setText(nombre);
-                            });
-                            detalleUsuarioViewModel.getApellidoP().observe(getViewLifecycleOwner(), apellidop -> {
-                                binding.duCEtxtApellidop.setText(apellidop);
-                            });
-                            detalleUsuarioViewModel.getApellidoM().observe(getViewLifecycleOwner(), apellidom -> {
-                                binding.duCEtxtApelldiom.setText(apellidom);
-                            });
-                            detalleUsuarioViewModel.getUsuario().observe(getViewLifecycleOwner(), usuario -> {
-                                binding.duCEtxtUsuario.setText(usuario);
-                            });
-                            detalleUsuarioViewModel.getPassword().observe(getViewLifecycleOwner(), password -> {
-                                binding.duCEtxtPassword.setText(password);
-                            });
-                            detalleUsuarioViewModel.getImagen().observe(getViewLifecycleOwner(), imagen -> {
-                                Picasso.with(getContext()).load(config.getUrlImages() + imagen).fit().into(binding.duCimgVUsuario);
-                            });
-                            //usuarioFragmentViewModel.getI
-                           //usuarioFragmentViewModel.getSelected().observe(getViewLifecycleOwner(), item ->{
-                               // binding.duCEtxtid.setText(item.getId_usuario());
-                                //binding.duCEtxtNombre.setText(item.getNombre());
-                                //binding.duCEtxtApellidop.setText(item.getApellido_m());
-                               // binding.duCEtxtUsuario.setText(item.getUsuario());
-                                //binding.duCEtxtPassword.setText(item.getPassword());
-                                //Picasso.with(getContext()).load(config.getUrlImages() + item.getImagen()).fit().into(binding.duCimgVUsuario);
-                           // });
-                            break;
-                        case "N":
-                            binding.duCEtxtid.setText("");
-                            binding.duCEtxtNombre.setText("");
-                            binding.duCEtxtApellidop.setText("");
-                            binding.duCEtxtApelldiom.setText("");
-                            binding.duCEtxtUsuario.setText("");
-                            binding.duCEtxtPassword.setText("");
-                            binding.duCimgVUsuario.setImageResource(0);
-                            break;
-                    } //fin de switch
-                } //fin get arguments
-            }); //Fin OnResponse
+            });
 
             activityResultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == RESULT_OK) {
+                            usuarioFragmentViewModel.setImageBitMap(imageUri, getActivity()).observe(getViewLifecycleOwner(), bitMap -> {
+                                binding.duCimgVUsuario.setImageBitmap(bitMap);
+                            });
+                            /**
                             int rotate = 0;
                             try {
                                 ExifInterface exif = new ExifInterface(Objects.requireNonNull(getPath(imageUri)));
@@ -184,7 +186,9 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                             //Asignar la imagen al ImageView del layout.
                             binding.duCimgVUsuario.setImageBitmap(thumbnail);
                             //imgUser.setImageURI(imageUri);
+                            **/
                         }
+
                     });
         } //fin detalle fragment
     } //fin onViewCreated
@@ -194,29 +198,18 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                 @Override
                 public void onActivityResult(Uri result) {
                     if (result != null) {
-                        binding.duCimgVUsuario.setImageURI(result);
+                        usuarioFragmentViewModel.setImageUri(result).observe(getViewLifecycleOwner(), imageUri -> {
+                                binding.duCimgVUsuario.setImageURI(imageUri);
+                        });
                     }
                 }
             }
     );
-
     @Override
     public void onClick(View v) {
         //La sentencia switch en este caso a partir de la versión 7 ya no son definitivos por lo tanto para
         //tener un mejor rendimiento se utiliza if/else. Esto según la documentación oficial se puede utilizar
         //la sentencia Switch pero debemos tener en cuenta que pierde eficiencia como en bucles o renderizados
-        /**
-        switch (v.getId()) {
-            case R.id.fab:
-                break;
-            case R.id.duCImgBtnCamara:
-
-                break;
-            case R.id.duCImgBtnGaleria:
-
-                break;
-        }
-         **/
         int identifier = v.getId();
         if (R.id.fab == identifier) {
             if (accion.equals("N")) {
@@ -228,7 +221,6 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                 container.put("apellido_m", binding.duCEtxtApelldiom.getText().toString().trim());
                 container.put("usuario", binding.duCEtxtUsuario.getText().toString().trim());
                 container.put("password", binding.duCEtxtPassword.getText().toString().trim());
-
                 binding.duCimgVUsuario.setDrawingCacheEnabled(true);
                 binding.duCimgVUsuario.buildDrawingCache();
                 Bitmap bit = ((BitmapDrawable) binding.duCimgVUsuario.getDrawable()).getBitmap();
@@ -303,7 +295,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         File imagen;
         try { //Del getBitMap
             path = getPath(recurso); //Traer la ruta del recurso Uri.
-            picture = MediaStore.Images.Media.getBitmap(requireContext().getContentResolver(), recurso); //Alamacenar en la variable la imagen nueva guardada.
+            picture = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), recurso); //Alamacenar en la variable la imagen nueva guardada.
                 if (path != null) {
                     imagen = new File(path); //Crear
                     FileOutputStream salida = new FileOutputStream(imagen); //Convetir en bytes.
@@ -359,14 +351,13 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
         return f;
     } //Fin de fileConverter.
 
-
-
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        id_rol = listRoles.get(position).getId_rol();
-    }
+        usuarioFragmentViewModel.getRoles().observe(getViewLifecycleOwner(), listRoles -> {
+            usuarioFragmentViewModel.setIdrol(listRoles.get(position).getId_rol());
+        });
 
+    }
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 

@@ -29,7 +29,6 @@ import java.util.List;
 public class UsuarioFragment extends Fragment {
 
     private UsuarioFragmentViewModel usuarioFragmentViewModel;
-    private DetalleUsuarioViewModel detalleUsuarioViewModel;
     private FragmentUsuarioBinding binding;
     private adapterusuario myAdapter;
 
@@ -37,17 +36,9 @@ public class UsuarioFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         usuarioFragmentViewModel =
                 new ViewModelProvider(requireActivity()).get(UsuarioFragmentViewModel.class);
-        detalleUsuarioViewModel =
-                new ViewModelProvider(requireActivity()).get(DetalleUsuarioViewModel.class);
         binding = FragmentUsuarioBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         final TextView textView = binding.textHome;
-        usuarioFragmentViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
         return root;
     }
     @Override
@@ -60,13 +51,10 @@ public class UsuarioFragment extends Fragment {
         if (navigation != null) {
             FloatingActionButton fabactionUser = navigation.findViewById(R.id.fab);
             fabactionUser.setImageResource(R.drawable.guardar_usuario);
-            fabactionUser.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Bundle accion =  new Bundle();
-                    accion.putString("accion", "N");
-                    NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, accion);
-                }
+            fabactionUser.setOnClickListener(v -> {
+                Bundle accion =  new Bundle();
+                accion.putString("accion", "N");
+                NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, accion);
             });
         }
     }
@@ -85,7 +73,7 @@ public class UsuarioFragment extends Fragment {
                     myAdapter.setListener((v, position) -> {
                         Bundle accion =  new Bundle();
                         accion.putString("accion", "M");
-                        detalleUsuarioViewModel.setSelected(myAdapter.getItemAt(position));
+                        usuarioFragmentViewModel.setSelected(myAdapter.getItemAt(position));
                         NavHostFragment.findNavController(getParentFragment()).navigate(R.id.detalleUsuarioFragment, accion);
                     }); //fin Myadapter.setListener
                 }); //End observe getUsers
