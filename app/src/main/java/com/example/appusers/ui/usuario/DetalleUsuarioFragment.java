@@ -85,6 +85,16 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
             binding.duCImgBtnCamara.setOnClickListener(this);
             binding.duCSpnRoles.setOnItemSelectedListener(this);
              //Llenar el spiner roles
+            if (getArguments() != null) {
+                accion = getArguments().getString("accion");
+                usuarioFragmentViewModel.setAccion(accion);
+            }
+
+            usuarioFragmentViewModel.getItemRoles().observe(getViewLifecycleOwner(), itemRoles -> {
+                fill = new adapterSpiner(getContext(), binding.duCSpnRoles,itemRoles);
+                fill.fillSpiner();
+            });
+            /**
             usuarioFragmentViewModel.requestRoles().observe(getViewLifecycleOwner(), code -> {
                 if (code.equals("200")) {
                     usuarioFragmentViewModel.getRoles().observe(getViewLifecycleOwner(), listRoles -> {
@@ -130,16 +140,16 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                                             });
                                 });
 
-                                        /**
-                                         usuarioFragmentViewModel.getSelected().observe(getViewLifecycleOwner(), item ->{
-                                         binding.duCEtxtid.setText(item.getId_usuario());
-                                         binding.duCEtxtNombre.setText(item.getNombre());
-                                         binding.duCEtxtApellidop.setText(item.getApellido_m());
-                                         binding.duCEtxtUsuario.setText(item.getUsuario());
-                                         binding.duCEtxtPassword.setText(item.getPassword());
-                                         Picasso.with(getContext()).load(config.getUrlImages() + item.getImagen()).fit().into(binding.duCimgVUsuario);
-                                         });
-                                         **/
+
+                                        // usuarioFragmentViewModel.getSelected().observe(getViewLifecycleOwner(), item ->{
+                                       //  binding.duCEtxtid.setText(item.getId_usuario());
+                                       //  binding.duCEtxtNombre.setText(item.getNombre());
+                                        // binding.duCEtxtApellidop.setText(item.getApellido_m());
+                                       //  binding.duCEtxtUsuario.setText(item.getUsuario());
+                                       //  binding.duCEtxtPassword.setText(item.getPassword());
+                                       //  Picasso.with(getContext()).load(config.getUrlImages() + item.getImagen()).fit().into(binding.duCimgVUsuario);
+                                       //  });
+
                                         break;
                                     case "N":
                                         binding.duCEtxtid.setText("");
@@ -156,7 +166,7 @@ public class DetalleUsuarioFragment extends Fragment implements View.OnClickList
                     });
                 }
             });
-
+             **/
             activityResultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == RESULT_OK) {

@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class UsuarioFragment extends Fragment {
-
     private UsuarioFragmentViewModel usuarioFragmentViewModel;
     private FragmentUsuarioBinding binding;
     private adapterusuario myAdapter;
